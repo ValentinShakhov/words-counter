@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Getter
 public class WordCountingStorage {
@@ -16,8 +17,7 @@ public class WordCountingStorage {
 
         newNode.getSourceToCountMap().put(entry.getSource(), 1L);
         if (smallestNode != null) {
-            smallestNode.smallerNode = newNode;
-            newNode.largerNode = smallestNode;
+            newNode.nextNode = smallestNode;
         }
         smallestNode = newNode;
 
@@ -27,33 +27,34 @@ public class WordCountingStorage {
     @Getter
     @RequiredArgsConstructor
     public static class Node {
+
         private final Map<String, Long> sourceToCountMap = new HashMap<>();
         private final String word;
-        private Node smallerNode;
-        private Node largerNode;
+        private Node nextNode;
 
         public long getTotalCount() {
             return sourceToCountMap.values().stream().mapToLong(l -> l).sum();
         }
 
-        void swapWithLargerNode() {
-            Node oldSmallerNode = this.smallerNode;
-            Node oldLargerNode = this.largerNode;
-            Node newLargerNode = oldLargerNode != null ? oldLargerNode.largerNode : null;
+        void increaseCount(String source) {
+            updateCount(source);
+            Optional.ofNullable(this.getNextNode())
+                    .filter(largerNode -> this.getTotalCount() > largerNode.getTotalCount())
+                    .ifPresent(largerNode -> this.swapWithLargerNode());
+        }
 
-            this.smallerNode = oldLargerNode;
-            this.largerNode = newLargerNode;
-            if (newLargerNode != null) {
-                newLargerNode.smallerNode = this;
-            }
+        private void updateCount(String source) {
+            Long count = this.getSourceToCountMap().getOrDefault(source, 0L);
+            count++;
+            this.getSourceToCountMap().put(source, count);
+        }
+
+        private void swapWithLargerNode() {
+            Node oldLargerNode = this.nextNode;
 
             if (oldLargerNode != null) {
-                oldLargerNode.smallerNode = oldSmallerNode;
-                oldLargerNode.largerNode = this;
-            }
-
-            if (oldSmallerNode != null) {
-                oldSmallerNode.largerNode = oldLargerNode;
+                this.nextNode = oldLargerNode.nextNode;
+                oldLargerNode.nextNode = this;
             }
         }
     }

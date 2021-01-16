@@ -15,7 +15,7 @@ class WordsFromFileReader extends Thread {
 
     private final String fileName;
     private final BlockingQueue<QueueEntry> queue;
-    private final CountDownLatch readersCountDown;
+    private final CountDownLatch readersCountDownLatch;
 
     @Override
     public void run() {
@@ -27,10 +27,10 @@ class WordsFromFileReader extends Thread {
                 String word = scanner.next();
                 queue.put(new QueueEntry(word, fileName));
             }
-            System.out.println(fileName + "finished");
-            readersCountDown.countDown();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+        } finally {
+            readersCountDownLatch.countDown();
         }
     }
 }
