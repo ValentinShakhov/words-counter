@@ -1,11 +1,11 @@
 import lombok.RequiredArgsConstructor;
 import storage.QueueEntry;
+import storage.StorageQueueFacade;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.Scanner;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 
 @RequiredArgsConstructor
@@ -14,7 +14,7 @@ class WordsFromFileReader extends Thread {
     private static final String FILE_NOT_FOUND_EXCEPTION = "File not found";
 
     private final String fileName;
-    private final BlockingQueue<QueueEntry> queue;
+    private final StorageQueueFacade queue;
     private final CountDownLatch readersCountDownLatch;
 
     @Override
