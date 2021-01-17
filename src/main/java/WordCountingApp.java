@@ -1,16 +1,19 @@
-import storage.*;
+import storage.Node;
+import storage.QueueListener;
+import storage.StorageQueueFacade;
+import storage.WordCountingStorage;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 public class WordCountingApp {
 
-    private static final String FIRST_FILE_NAME = "text1";
-    private static final String SECOND_FILE_NAME = "text2";
-    private static final int NUMBER_OF_READERS = 2;
+    private static final List<String> FILE_NAMES = List.of("text1", "text2");
 
     private final StorageQueueFacade queue = new StorageQueueFacade();
     private final WordCountingStorage storage = new WordCountingStorage();
-    private final CountDownLatch readersCountDownLatch = new CountDownLatch(NUMBER_OF_READERS);
+    private final CountDownLatch readersCountDownLatch = new CountDownLatch(FILE_NAMES.size());
     private final CountDownLatch listenerLatch = new CountDownLatch(1);
 
     public static void main(String[] args) throws InterruptedException {
@@ -20,8 +23,8 @@ public class WordCountingApp {
     private void launch() throws InterruptedException {
         new QueueListener(queue, storage, readersCountDownLatch, listenerLatch).start();
 
-        new WordsFromFileReader(FIRST_FILE_NAME, queue, readersCountDownLatch).start();
-        new WordsFromFileReader(SECOND_FILE_NAME, queue, readersCountDownLatch).start();
+        FILE_NAMES.forEach(fileName ->
+                new WordsFromFileReader(fileName, queue, readersCountDownLatch).start());
 
         listenerLatch.await();
 
@@ -32,10 +35,14 @@ public class WordCountingApp {
         if (node.getNextNode() != null) {
             print(node.getNextNode());
         }
-        System.out.printf("%s %s = %s + %s%n",
-                node.getWord(),
-                node.getTotalCount(),
-                node.getCountBySource(FIRST_FILE_NAME),
-                node.getCountBySource(SECOND_FILE_NAME));
+
+        System.out.println(node.getWord() +
+                " " +
+                node.getTotalCount() +
+                " = " +
+                FILE_NAMES.stream()
+                        .map(node::getCountBySource)
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(" + ")));
     }
 }
