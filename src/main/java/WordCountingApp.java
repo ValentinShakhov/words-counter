@@ -1,7 +1,7 @@
 import storage.Node;
 import storage.QueueListener;
 import storage.StorageQueueFacade;
-import storage.WordCountingStorage;
+import storage.WordCountSortedList;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -12,7 +12,7 @@ public class WordCountingApp {
     private static final List<String> FILE_NAMES = List.of("text1", "text2");
 
     private final StorageQueueFacade queue = new StorageQueueFacade();
-    private final WordCountingStorage storage = new WordCountingStorage();
+    private final WordCountSortedList wordCountList = new WordCountSortedList();
     private final CountDownLatch readersCountDownLatch = new CountDownLatch(FILE_NAMES.size());
     private final CountDownLatch listenerLatch = new CountDownLatch(1);
 
@@ -21,7 +21,7 @@ public class WordCountingApp {
     }
 
     private void launch() throws InterruptedException {
-        new QueueListener(queue, storage, readersCountDownLatch, listenerLatch).start();
+        new QueueListener(queue, wordCountList, readersCountDownLatch, listenerLatch).start();
 
         FILE_NAMES.forEach(fileName ->
                 new WordsFromFileReader(fileName, queue, readersCountDownLatch).start());
@@ -32,7 +32,7 @@ public class WordCountingApp {
     }
 
     private void printResult() {
-        Node node = storage.getLargestNode();
+        Node node = wordCountList.getLast();
 
         while (node != null) {
             System.out.println(node.getWord() +
@@ -44,7 +44,7 @@ public class WordCountingApp {
                             .map(String::valueOf)
                             .collect(Collectors.joining(" + ")));
 
-            node = node.getSmallerNode();
+            node = node.getPrev();
         }
     }
 }

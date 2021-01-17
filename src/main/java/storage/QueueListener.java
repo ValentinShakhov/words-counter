@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 public class QueueListener extends Thread {
 
     private final StorageQueueFacade queueFacade;
-    private final WordCountingStorage storage;
+    private final WordCountSortedList wordCountList;
     private final Map<String, Node> wordToNodeMap = new HashMap<>();
     private final CountDownLatch readersCountDownLatch;
     private final CountDownLatch workCompleteLatch;
@@ -22,8 +22,8 @@ public class QueueListener extends Thread {
             while (queueFacade.isNotEmpty() || readersCountDownLatch.getCount() > 0) {
                 Optional.ofNullable(queueFacade.pollWithTimeout())
                         .ifPresent(entry -> Optional.ofNullable(wordToNodeMap.get(entry.getWord()))
-                                .ifPresentOrElse(node -> storage.updateNode(entry.getSource(), node),
-                                        () -> wordToNodeMap.put(entry.getWord(), storage.createNewNode(entry))));
+                                .ifPresentOrElse(node -> wordCountList.updateNode(entry.getSource(), node),
+                                        () -> wordToNodeMap.put(entry.getWord(), wordCountList.createNewNode(entry))));
             }
         } catch (InterruptedException e) {
             e.printStackTrace();

@@ -19,11 +19,11 @@ public class Node {
 
     @Getter
     @Setter(AccessLevel.PACKAGE)
-    private Node largerNode;
+    private Node next;
 
     @Getter
     @Setter(AccessLevel.PACKAGE)
-    private Node smallerNode;
+    private Node prev;
 
     public long getTotalCount() {
         return this.getSourceToCountMap().values().stream().mapToLong(l -> l).sum();
