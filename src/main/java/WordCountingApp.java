@@ -28,21 +28,23 @@ public class WordCountingApp {
 
         listenerLatch.await();
 
-        print(storage.getSmallestNode());
+        printResult();
     }
 
-    private void print(Node node) {
-        if (node.getNextNode() != null) {
-            print(node.getNextNode());
-        }
+    private void printResult() {
+        Node node = storage.getLargestNode();
 
-        System.out.println(node.getWord() +
-                " " +
-                node.getTotalCount() +
-                " = " +
-                FILE_NAMES.stream()
-                        .map(node::getCountBySource)
-                        .map(String::valueOf)
-                        .collect(Collectors.joining(" + ")));
+        while (node != null) {
+            System.out.println(node.getWord() +
+                    " " +
+                    node.getTotalCount() +
+                    " = " +
+                    FILE_NAMES.stream()
+                            .map(node::getCountBySource)
+                            .map(String::valueOf)
+                            .collect(Collectors.joining(" + ")));
+
+            node = node.getSmallerNode();
+        }
     }
 }

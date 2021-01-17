@@ -22,7 +22,7 @@ public class QueueListener extends Thread {
             while (queueFacade.isNotEmpty() || readersCountDownLatch.getCount() > 0) {
                 Optional.ofNullable(queueFacade.pollWithTimeout())
                         .ifPresent(entry -> Optional.ofNullable(wordToNodeMap.get(entry.getWord()))
-                                .ifPresentOrElse(nodeFromMap -> nodeFromMap.increaseCount(entry.getSource()),
+                                .ifPresentOrElse(node -> storage.updateNode(entry.getSource(), node),
                                         () -> wordToNodeMap.put(entry.getWord(), storage.createNewNode(entry))));
             }
         } catch (InterruptedException e) {
